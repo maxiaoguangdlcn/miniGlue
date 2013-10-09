@@ -1,0 +1,43 @@
+object frmChild: TfrmChild
+  Left = 203
+  Top = 126
+  Width = 638
+  Height = 417
+  Color = clBtnFace
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'MS Sans Serif'
+  Font.Style = []
+  FormStyle = fsMDIChild
+  OldCreateOrder = False
+  Position = poDefault
+  Visible = True
+  OnActivate = FormActivate
+  OnClose = FormClose
+  OnCreate = FormCreate
+  OnShow = FormShow
+  PixelsPerInch = 96
+  TextHeight = 13
+  object imgWorkArea: TImgView32
+    Left = 0
+    Top = 0
+    Width = 630
+    Height = 373
+    Align = alClient
+    Bitmap.ResamplerClassName = 'TNearestResampler'
+    BitmapAlign = baCustom
+    Scale = 1.000000000000000000
+    ScaleMode = smScale
+    ScrollBars.ShowHandleGrip = True
+    ScrollBars.Style = rbsDefault
+    ScrollBars.Size = 21
+    ScrollBars.Visibility = svAuto
+    OverSize = 0
+    TabOrder = 0
+    OnMouseDown = imgWorkAreaMouseDown
+    OnMouseMove = imgWorkAreaMouseMove
+    OnMouseUp = imgWorkAreaMouseUp
+    OnPaintStage = imgWorkAreaPaintStage
+  end
+end
