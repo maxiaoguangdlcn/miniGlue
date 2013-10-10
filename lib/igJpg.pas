@@ -30,16 +30,16 @@ unit igJpg;
 
 interface
 
+{$IFDEF FPC}
+  {$MODE Delphi}
+{$ENDIF}
+
 (* ***** BEGIN NOTICE BLOCK *****
  *
  * For using this unit, please always add it into the project,
  * not just reference it by Search Path settings. Adding unit to
  * project will make the code in Initialization/Finalization part
  * of the unit be invoked.
- *
- * And also notice that, the unit igGraphics.pas should be added
- * to a project before this unit. Please check out the code at
- * the end of this unit for details.
  *
  * ***** END NOTIC BLOCK *****)
 
@@ -54,7 +54,7 @@ uses
 type
   { TigJpgReader }
 
-  TigJpgReader = class(TigGraphicsReader)
+  TigJpgReader = class(TigGraphicReader)
   public
     class function IsValidFormat(AStream: TStream): Boolean; override;
     function LoadFromStream(AStream: TStream): TBitmap32; override;
@@ -65,7 +65,8 @@ implementation
 
 uses
 { Delphi }
-  JPEG, Graphics;
+  {$IFNDEF FPC}JPEG,{$ENDIF}
+  Graphics;
 
 const
   C_JPG_MARKER_1 = $D8FF; // http://en.wikipedia.org/wiki/JPEG_file_format
@@ -117,8 +118,6 @@ begin
 end;
 
 initialization
-  // Unit igGraphics.pas should be added to a project before this unit,
-  // for making the following function call available.
-  igGraphics.RegisterGraphicsFileReader('jpg', 'JPEG (*.jpg)', TigJpgReader);
-
+  igGraphics.RegisterGraphicsFileReader('jpg', TigJpgReader);
+  igGraphics.RegisterGraphicsFileReader('jpeg', TigJpgReader);
 end.

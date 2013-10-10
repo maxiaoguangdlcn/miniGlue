@@ -21,7 +21,7 @@ unit igGraphicsLayerIO;
  * license.
  *
  * The Original Code is gmFileFormatList.pas
- * This unit is based on the Original Code 
+ * This unit is based on the Original Code
  *
  * The Initial Developer of the Original Code is
  *   x2nie < x2nie[at]yahoo[dot]com >
@@ -35,6 +35,10 @@ unit igGraphicsLayerIO;
  * ***** END LICENSE BLOCK ***** *)
 
 interface
+
+{$IFDEF FPC}
+  {$MODE Delphi}
+{$ENDIF}
 
 (* ***** BEGIN NOTICE BLOCK *****
  *
@@ -55,8 +59,7 @@ interface
  *   igLayerIO.pas
  *   -------------
  *     We register this Graphics Layer Reader to a global list
- *   in igLayerIO.pas. Please check out the code at the end of
- *   this unit for details.
+ *   in igLayerIO.pas. 
  *
  * ***** END NOTIC BLOCK *****)
 
@@ -203,8 +206,6 @@ end;
 
 
 initialization
-  // Unit igLayerIO.pas should be added to a project before this unit,
-  // for making the following function call available.
   igLayerIO.RegisterLayerReader(TigGraphicsLayerReader);
 
 

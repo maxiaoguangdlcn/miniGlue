@@ -36,6 +36,10 @@ unit igGraphics;
 
 interface
 
+{$IFDEF FPC}
+  {$MODE Delphi}
+{$ENDIF}
+
 (* ***** BEGIN NOTICE BLOCK *****
  *
  * For using this unit, please always add it into the project,
@@ -55,8 +59,8 @@ uses
 type
   { Forward Declarations }
   
-  TigGraphicsReader = class;
-  TigGraphicsReaderClass = class of TigGraphicsReader;
+  TigGraphicReader = class;
+  TigGraphicsReaderClass = class of TigGraphicReader;
 
   { TigGraphicsReaderRegistration }
 
@@ -73,7 +77,7 @@ type
 
   { TigGraphcisReader }
   
-  TigGraphicsReader = class(TObject)
+  TigGraphicReader = class(TObject)
   public
     class function IsValidFormat(AStream: TStream): Boolean; virtual; abstract;
     function LoadFromFile(const AFileName: TFileName): TBitmap32; virtual;
@@ -111,31 +115,40 @@ type
 var
   // May contains registered graphics file readers, such BMP reader,
   // JPEG reader, PNG reader, etc. 
-  gGraphicsReaders : TigGraphicsReaders;
+  gGraphicsReaders : TigGraphicsReaders = nil;   //let set it as nil for first time, so it can be assigned later.
+
 
 
 // called by other unit for registering variety of graphics file readers
-procedure RegisterGraphicsFileReader(const AExtension, ADescription: string;
-  AReaderClass: TigGraphicsReaderClass);
+procedure RegisterGraphicsFileReader(const AExtension: string;
+  AReaderClass: TigGraphicsReaderClass; ADescription: string='');
 
 
 
 implementation
 
+procedure PrepareGraphicsFileReader;
+begin
+  if not Assigned(gGraphicsReaders) then
+  begin
+    gGraphicsReaders := TigGraphicsReaders.Create;
+  end;
+end;
 
 // called by other unit for registering variety of graphics file readers
-procedure RegisterGraphicsFileReader(const AExtension, ADescription: string;
-  AReaderClass: TigGraphicsReaderClass);
+procedure RegisterGraphicsFileReader(const AExtension: string;
+  AReaderClass: TigGraphicsReaderClass; ADescription: string='');
 begin
-  if Assigned(gGraphicsReaders) then
-  begin
-    gGraphicsReaders.Add(AExtension, ADescription, AReaderClass);
-  end;
+  PrepareGraphicsFileReader();
+
+  if ADescription = '' then
+    ADescription := Format('%s file (*.%s)',[UpperCase(AExtension), LowerCase(AExtension)] );
+  gGraphicsReaders.Add(AExtension, ADescription, AReaderClass);
 end;
 
 { TigGraphcisReader }
 
-function TigGraphicsReader.LoadFromFile(const AFileName: TFileName): TBitmap32;
+function TigGraphicReader.LoadFromFile(const AFileName: TFileName): TBitmap32;
 var
   LStream : TStream;
 begin
@@ -319,7 +332,7 @@ function TigGraphicsReaders.LoadFromStream(AStream: TStream): TBitmap32;
 var
   i          : Integer;
   LReaderReg : TigGraphicsReaderRegistration;
-  LReader    : TigGraphicsReader;
+  LReader    : TigGraphicReader;
 begin
   Result := nil;
 
@@ -385,22 +398,14 @@ end;
 
 //****************************************************************************//
 
-procedure UnitInit;
-begin
-  if not Assigned(gGraphicsReaders) then
-  begin
-    gGraphicsReaders := TigGraphicsReaders.Create;
-  end;
-end;
-
 procedure UnitDestroy;
 begin
-  gGraphicsReaders.Free;
+  if Assigned(gGraphicsReaders) then
+    gGraphicsReaders.Free;
 end;
 
 
 initialization
-  UnitInit;
 
 finalization
   UnitDestroy;

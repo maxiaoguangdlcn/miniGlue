@@ -1,8 +1,8 @@
 object frmMain: TfrmMain
-  Left = 187
-  Top = 128
-  Width = 870
-  Height = 640
+  Left = 391
+  Top = 239
+  Width = 651
+  Height = 280
   Caption = 'miniGlue'
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -12,9 +12,8 @@ object frmMain: TfrmMain
   Font.Style = []
   FormStyle = fsMDIForm
   Menu = dmMain.mnMainForm
-  OldCreateOrder = False
+  OldCreateOrder = True
   WindowState = wsMaximized
-  WindowMenu = dmMain.mnitmWindow
   OnClose = FormClose
   OnShow = FormShow
   PixelsPerInch = 96

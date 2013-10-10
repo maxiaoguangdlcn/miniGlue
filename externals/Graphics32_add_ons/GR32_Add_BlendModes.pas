@@ -32,6 +32,10 @@
 
 unit GR32_Add_BlendModes;
 
+{$IFDEF FPC}
+  {$MODE Delphi}
+{$ENDIF}
+
 { For the blending algorithm, you could find it at:
   http://en.wikipedia.org/wiki/Alpha_compositing
   http://www.answers.com/topic/alpha-compositing

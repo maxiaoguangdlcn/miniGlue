@@ -1,5 +1,9 @@
 unit igLayers;
 
+{$IFDEF FPC}
+  {$MODE Delphi}
+{$ENDIF}
+
 (* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1 or LGPL 2.1 with linking exception
  *

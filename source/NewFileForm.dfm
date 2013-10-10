@@ -1,6 +1,6 @@
 object frmNewFile: TfrmNewFile
-  Left = 187
-  Top = 132
+  Left = 124
+  Top = 255
   BorderStyle = bsDialog
   Caption = 'New'
   ClientHeight = 106
@@ -11,7 +11,7 @@ object frmNewFile: TfrmNewFile
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
   Font.Style = []
-  OldCreateOrder = False
+  OldCreateOrder = True
   Position = poScreenCenter
   OnCreate = FormCreate
   PixelsPerInch = 96
@@ -29,6 +29,8 @@ object frmNewFile: TfrmNewFile
       Width = 31
       Height = 13
       Caption = 'Width:'
+      Color = clBtnFace
+      ParentColor = False
     end
     object lblHeight: TLabel
       Left = 16
@@ -36,6 +38,8 @@ object frmNewFile: TfrmNewFile
       Width = 34
       Height = 13
       Caption = 'Height:'
+      Color = clBtnFace
+      ParentColor = False
     end
     object edtWidth: TEdit
       Left = 56

@@ -1,6 +1,6 @@
 object frmChild: TfrmChild
-  Left = 203
-  Top = 126
+  Left = 275
+  Top = 179
   Width = 638
   Height = 417
   Color = clBtnFace
@@ -23,7 +23,7 @@ object frmChild: TfrmChild
     Left = 0
     Top = 0
     Width = 630
-    Height = 373
+    Height = 390
     Align = alClient
     Bitmap.ResamplerClassName = 'TNearestResampler'
     BitmapAlign = baCustom

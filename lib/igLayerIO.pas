@@ -1,5 +1,9 @@
 unit igLayerIO;
 
+{$IFDEF FPC}
+  {$MODE Delphi}
+{$ENDIF}
+
 (* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1 or LGPL 2.1 with linking exception
  *
@@ -138,7 +142,8 @@ procedure TigLayerReader.LoadFromFile(const AFileName: TFileName;
 var
   LStream : TStream;
 begin
-  if FileExists(AFileName) and Assigned(ALayerPanelList) then
+  //x2nie if FileExistsUTF8(AFileName) { *Converted from FileExists*  } and Assigned(ALayerPanelList) then
+  if FileExists(AFileName) { *Converted from FileExists*  } and Assigned(ALayerPanelList) then
   begin
     LStream := TFileStream.Create(AFileName, fmOpenRead	or fmShareDenyNone);
     try
@@ -243,7 +248,8 @@ procedure TigLayerReaders.LoadFromFile(const AFileName: TFileName;
 var
   LStream : TStream;
 begin
-  if not FileExists(AFileName) then
+  //x2nie if not FileExistsUTF8(AFileName) { *Converted from FileExists*  } then
+  if not FileExists(AFileName) { *Converted from FileExists*  } then
   begin
     Exit;
   end;

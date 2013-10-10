@@ -30,6 +30,11 @@ unit MainForm;
 
 interface
 
+{$IFDEF FPC}
+  {$MODE Delphi}
+{$ENDIF}
+
+
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs;
@@ -50,6 +55,8 @@ var
 implementation
 
 uses
+{ miniGlue lib }
+  igPng, igJpg,
 { miniGlue }
   MainDataModule,
   LayerForm;

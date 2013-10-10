@@ -30,16 +30,16 @@ unit igPng;
 
 interface
 
+{$IFDEF FPC}
+  {$MODE Delphi}
+{$ENDIF}
+
 (* ***** BEGIN NOTICE BLOCK *****
  *
  * For using this unit, please always add it into the project,
  * not just reference it by Search Path settings. Adding unit to
  * project will make the code in Initialization/Finalization part
  * of the unit be invoked.
- *
- * And also notice that, the unit igGraphics.pas should be added
- * to a project before this unit. Please check out the code at
- * the end of this unit for details.
  *
  * ***** END NOTIC BLOCK *****)
 
@@ -57,7 +57,7 @@ uses
 type
   { TigPngReader }
 
-  TigPngReader = class(TigGraphicsReader)
+  TigPngReader = class(TigGraphicReader)
   public
     class function IsValidFormat(AStream: TStream): Boolean; override;
     function LoadFromStream(AStream: TStream): TBitmap32; override;
@@ -107,8 +107,6 @@ begin
 end;
 
 initialization
-  // Unit igGraphics.pas should be added to a project before this unit,
-  // for making the following function call available.
-  igGraphics.RegisterGraphicsFileReader('png', 'PNG (*.png)', TigPngReader);
+  igGraphics.RegisterGraphicsFileReader('png', TigPngReader, 'Portable Network Graphic (*.png)',);
 
 end.

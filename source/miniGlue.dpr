@@ -1,6 +1,12 @@
 program miniGlue;
 
+{$IFDEF FPC}
+  {$MODE Delphi}
+{$ENDIF}
+
+  //note for delphi, when error add uses: {$ifdef FPC}Interfaces,{$endif}
 uses
+  {$ifdef FPC}Interfaces,{$endif}
   Forms,
   MainForm in 'MainForm.pas' {frmMain},
   MainDataModule in 'MainDataModule.pas' {dmMain: TDataModule},
@@ -11,13 +17,11 @@ uses
   igLayers in '..\lib\igLayers.pas',
   igMath in '..\lib\igMath.pas',
   igLayerPanelManager in '..\lib\igLayerPanelManager.pas',
-  igGraphics in '..\lib\igGraphics.pas',
   igPng in '..\lib\igPng.pas',
-  igJpg in '..\lib\igJpg.pas',
+  //igJpg in '..\lib\igJpg.pas',
   igLayerIO in '..\lib\igLayerIO.pas',
-  igGraphicsLayerIO in '..\lib\igGraphicsLayerIO.pas';
-
-{$R *.res}
+  igGraphicsLayerIO in '..\lib\igGraphicsLayerIO.pas',
+  igBase in '..\lib\igBase.pas';
 
 begin
   Application.Initialize;

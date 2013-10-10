@@ -30,9 +30,14 @@ unit igLayerPanelManager;
 
 interface
 
+{$IFDEF FPC}
+  {$MODE Delphi}
+{$ENDIF}
+
+
 uses
 { Delphi }
-  Types, Controls, Classes,
+  Types, Windows, Controls, Classes,
 { Graphics32 }
   GR32, GR32_Image, GR32_RangeBars,
 { miniGlue lib }
@@ -187,7 +192,7 @@ implementation
 
 uses
 { Delphi }
-  Windows, SysUtils, Graphics, Forms, Math,
+  SysUtils, Graphics, Forms, Math,
 { Graphics32 }
   GR32_LowLevel,
 { miniGlue lib }
