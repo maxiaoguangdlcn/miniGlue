@@ -122,8 +122,7 @@ end;
 procedure TfrmChild.AfterLayerMerged(AResultPanel: TigCustomLayerPanel);
 begin
   // setting callback functions for the result layer panel
-  if Assigned(AResultPanel) and
-     (AResultPanel.LayerFeature = lfNormal) then
+  if Assigned(AResultPanel) and (AResultPanel is TigNormalLayerPanel) then
   begin
     with AResultPanel do
     begin
@@ -205,14 +204,12 @@ begin
         OnChange            := Self.AfterLayerPanelChanged;
         OnPanelDblClick     := nil;
         OnMaskThumbDblClick := nil;
-      
-        case LayerFeature of
-          lfNormal:
-            begin
-              OnThumbnailUpdate    := Self.AfterLayerPanelChanged;
-              OnLayerThumbDblClick := Self.LayerThumbDblClick;
-            end;
-          end;
+
+        if LLayerPanel is TigNormalLayerPanel then
+        begin
+          OnThumbnailUpdate    := Self.AfterLayerPanelChanged;
+          OnLayerThumbDblClick := Self.LayerThumbDblClick;
+        end;
       end;
     end;
   end;

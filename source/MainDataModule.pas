@@ -213,7 +213,7 @@ begin
 
         lpsMask:
           begin
-            if LayerPanelList.SelectedPanel.LayerFeature = lfNormal then
+            if LayerPanelList.SelectedPanel is TigNormalLayerPanel then
             begin
               LModalResult := MessageDlg('Apply mask to layer before removing?',
                                           mtConfirmation,

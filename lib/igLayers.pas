@@ -43,13 +43,21 @@ uses
   GR32_Add_BlendModes;
 
 type
-  TigLayerFeature = (lfNone, lfNormal);
+  TigLayerPixelFeature = (lpfNone,
+                          lpfNormalPixelized,   // Such layers can be editing with any tools,
+                                                // example of such a layer is Normal layer.
+                          lpfSpecialPixelized,  // Such layers can be editing only with its own specific tools,
+                                                // example of such a layer is Gradient layer.
+                          lpfNonPixelized       // Such layers have dummy pixels, and can only take
+                                                // effect on the blending result of beneath layers
+                          );
 
   // mark process stage -- on the layer or on the mask
   TigLayerProcessStage = (lpsLayer, lpsMask);
 
   { Forward Declarations }
   TigLayerPanelList = class;
+  TigClassCounter = class;
 
   { TigCustomLayerPanel }
   
@@ -64,12 +72,13 @@ type
     FLayerBlendEvent      : TPixelCombineEvent;
     FLayerVisible         : Boolean;
     FLayerProcessStage    : TigLayerProcessStage;
-    FLayerFeature         : TigLayerFeature;       // the feature of the layer
+    FPixelFeature         : TigLayerPixelFeature;  // the pixel feature of the layer
     FSelected             : Boolean;
     FDuplicated           : Boolean;               // indicate whether this layer is duplicated from another one
     FMaskEnabled          : Boolean;               // indicate whether this layer has a mask
     FMaskLinked           : Boolean;               // indicate whether this layer is linked to a mask
     FRealThumbRect        : TRect;
+    FDefaultLayerName     : string;
     FLayerName            : string;
 
     FOnChange             : TNotifyEvent;
@@ -116,7 +125,7 @@ type
     property LayerBlendMode       : TBlendMode32         read FLayerBlendMode       write SetLayerBlendMode;
     property LayerOpacity         : Byte                 read GetLayerOpacity       write SetLayerOpacity;
     property LayerProcessStage    : TigLayerProcessStage read FLayerProcessStage    write SetLayerProcessStage;
-    property LayerFeature         : TigLayerFeature      read FLayerFeature;
+    property PixelFeature         : TigLayerPixelFeature read FPixelFeature;
     property OnChange             : TNotifyEvent         read FOnChange             write FOnChange;
     property OnThumbnailUpdate    : TNotifyEvent         read FOnThumbUpdate        write FOnThumbUpdate;
     property OnPanelDblClick      : TNotifyEvent         read FOnPanelDblClick      write FOnPanelDblClick;
@@ -159,7 +168,7 @@ type
     FOnMergeVisibleLayers : TigMergeLayerEvent;
     FOnFlattenLayers      : TigMergeLayerEvent;
 
-    FNormalLayerCount     : Integer;
+    FPanelTypeCounter     : TigClassCounter;
 
     function GetPanelCount: Integer;
     function GetPanelMaxIndex: Integer;
@@ -172,7 +181,6 @@ type
     procedure BlendLayers(const ARect: TRect); overload;
     procedure DeleteVisibleLayerPanels;
     procedure DeselectAllPanels;
-    procedure InitLayerCounters;
     procedure SetLayerPanelInitialName(ALayerPanel: TigCustomLayerPanel);
   public
     constructor Create;
@@ -208,6 +216,39 @@ type
     property OnFlattenLayers              : TigMergeLayerEvent    read FOnFlattenLayers      write FOnFlattenLayers;
   end;
 
+
+  { TigClassRec }
+
+  TigClassRec = class(TObject)
+  private
+    FName  : ShortString;
+    FCount : Integer;
+  public
+    constructor Create(const AClassName: ShortString);
+
+    property Name  : ShortString read FName  write FName;
+    property Count : Integer     read FCount write FCount;
+  end;
+
+
+  { TigClassCounter }
+
+  TigClassCounter = class(TPersistent)
+  private
+    FItems : TObjectList;
+
+    function GetIndex(const AClassName: ShortString): Integer;
+    function IsValidIndex(const AIndex: Integer): Boolean;
+  public
+    constructor Create;
+    destructor Destroy; override;
+
+    function Increase(const AClassName: ShortString): Integer;
+    function GetCount(const AClassName: ShortString): Integer;
+
+    procedure Clear;
+  end;
+
 const
   LAYER_THUMB_SIZE = 36;
 
@@ -223,9 +264,6 @@ uses
 
 {$R igIcons.res}
 
-const
-  LAYER_NAME_BACKGROUND = 'Background';
-  LAYER_NAME_Normal     = 'Layer ';
 
 { TigCustomLayerPanel }
 
@@ -243,9 +281,10 @@ begin
   FSelected          := True;
   FMaskEnabled       := False;
   FMaskLinked        := False;
+  FDefaultLayerName  := '';
   FLayerName         := '';
   FLayerProcessStage := lpsLayer;
-  FLayerFeature      := lfNone;
+  FPixelFeature      := lpfNone;
   
   FOnChange             := nil;
   FOnThumbUpdate        := nil;
@@ -559,12 +598,14 @@ constructor TigNormalLayerPanel.Create(AOwner: TigLayerPanelList;
 begin
   inherited Create(AOwner, ALayerWidth, ALayerHeight, AFillColor);
 
-  FLayerFeature := lfNormal;
-  FAsBackground := AsBackLayerPanel;
+  FPixelFeature     := lpfNormalPixelized;
+  FAsBackground     := AsBackLayerPanel;
+  FDefaultLayerName := 'Layer';
 
   if FAsBackground then
   begin
-    FLayerName := LAYER_NAME_BACKGROUND;
+    FDefaultLayerName := 'Background';
+    FLayerName        := FDefaultLayerName;
   end;
 end;
 
@@ -630,15 +671,14 @@ begin
   FOnMergeVisibleLayers := nil;
   FOnFlattenLayers      := nil;
 
-  FItems := TObjectList.Create(True);
+  FItems            := TObjectList.Create(True);
+  FPanelTypeCounter := TigClassCounter.Create;
 
   FCombineResult := TBitmap32.Create;
   with FCombineResult do
   begin
     DrawMode := dmBlend;
   end;
-
-  InitLayerCounters;
 end;
 
 destructor TigLayerPanelList.Destroy;
@@ -646,6 +686,7 @@ begin
   FItems.Clear;
   FItems.Free;
   FCombineResult.Free;
+  FPanelTypeCounter.Free;
   
   inherited;
 end;
@@ -707,6 +748,8 @@ begin
   end;
 end;
 
+// TODO: Perhaps need to rename this function
+// to 'GetVisibleNormalPixelizedLayerCount'
 function TigLayerPanelList.GetVisibleNormalLayerCount: Integer;
 var
   i           : Integer;
@@ -720,7 +763,8 @@ begin
     begin
       LLayerPanel := Self.LayerPanels[i];
 
-      if LLayerPanel.IsLayerVisible and (LLayerPanel.LayerFeature = lfNormal) then
+      if LLayerPanel.IsLayerVisible and
+         (LLayerPanel.PixelFeature = lpfNormalPixelized) then
       begin
         Inc(Result);
       end;
@@ -944,29 +988,23 @@ begin
   end;
 end;
 
-procedure TigLayerPanelList.InitLayerCounters;
-begin
-  FNormalLayerCount := 0;
-end;
-
 procedure TigLayerPanelList.SetLayerPanelInitialName(
   ALayerPanel: TigCustomLayerPanel);
+var
+  LNumber : Integer;
 begin
   if Assigned(ALayerPanel) then
   begin
-    case ALayerPanel.LayerFeature of
-      lfNormal:
-        begin
-          with TigNormalLayerPanel(ALayerPanel) do
-          begin
-            if not FAsBackground then
-            begin
-              Inc(FNormalLayerCount);
-              FLayerName := LAYER_NAME_NORMAL + IntToStr(FNormalLayerCount);
-            end;
-          end;
-        end;
+    if ALayerPanel is TigNormalLayerPanel then
+    begin
+      if TigNormalLayerPanel(ALayerPanel).IsAsBackground then
+      begin
+        Exit;
+      end;
     end;
+
+    LNumber := FPanelTypeCounter.GetCount(ALayerPanel.ClassName);
+    ALayerPanel.LayerName := ALayerPanel.FDefaultLayerName + ' ' + IntToStr(LNumber);
   end;
 end;
 
@@ -975,6 +1013,15 @@ begin
   if Assigned(APanel) then
   begin
     FItems.Add(APanel);
+
+    // we don't count background layers
+    if APanel is TigNormalLayerPanel then
+    begin
+      if not TigNormalLayerPanel(APanel).IsAsBackground then
+      begin
+        FPanelTypeCounter.Increase(APanel.ClassName);
+      end;
+    end;
     
     // first adding
     if FItems.Count = 1 then
@@ -1022,6 +1069,15 @@ begin
   begin
     AIndex := Clamp(AIndex, 0, FItems.Count);
     FItems.Insert(AIndex, APanel);
+
+    // we don't count background layers
+    if APanel is TigNormalLayerPanel then
+    begin
+      if not TigNormalLayerPanel(APanel).IsAsBackground then
+      begin
+        FPanelTypeCounter.Increase(APanel.ClassName);
+      end;
+    end;
     
     BlendLayers;
     SelectLayerPanel(AIndex);
@@ -1113,7 +1169,7 @@ begin
   begin
     if FItems.Count = 1 then
     begin
-      if Self.SelectedPanel.LayerFeature = lfNormal then
+      if Self.SelectedPanel is TigNormalLayerPanel then
       begin
         // If the only layer is a Normal layer but not as background layer,
         // we could flatten it as a background layer
@@ -1143,7 +1199,8 @@ begin
 
     // can only merge down to a visible Normal layer
     Result := FSelectedPanel.IsLayerVisible and
-              (LPrevPanel.LayerFeature = lfNormal) and LPrevPanel.IsLayerVisible;
+              LPrevPanel.IsLayerVisible and 
+              (LPrevPanel.PixelFeature = lpfNormalPixelized);
   end;
 end;
 
@@ -1177,7 +1234,7 @@ begin
     end;
 
     FItems.Clear;
-    InitLayerCounters;
+    FPanelTypeCounter.Clear;
     Self.Add(LBackPanel);
     Self.SelectLayerPanel(0);
 
@@ -1258,7 +1315,7 @@ begin
   begin
     LAsBackground := False;
     
-    if FSelectedPanel.LayerFeature = lfNormal then
+    if FSelectedPanel is TigNormalLayerPanel then
     begin
       LAsBackground := TigNormalLayerPanel(FSelectedPanel).FAsBackground;
     end;
@@ -1308,6 +1365,126 @@ begin
       end;
     end;
   end;
+end;
+
+{ TigClassRec }
+
+constructor TigClassRec.Create(const AClassName: ShortString);
+begin
+  inherited Create;
+
+  FName  := AClassName;
+  FCount := 1;
+end;
+
+{ TigClassCounter }
+
+constructor TigClassCounter.Create;
+begin
+  inherited;
+
+  FItems := TObjectList.Create;
+end;
+
+destructor TigClassCounter.Destroy;
+begin
+  FItems.Clear;
+  FItems.Free;
+
+  inherited;
+end;
+
+function TigClassCounter.GetIndex(const AClassName: ShortString): Integer;
+var
+  i    : Integer;
+  LRec : TigClassRec;
+begin
+  Result := -1;
+
+  if AClassName = '' then
+  begin
+    Exit;
+  end;
+
+  if FItems.Count > 0 then
+  begin
+    for i := 0 to (FItems.Count - 1) do
+    begin
+      LRec := TigClassRec(FItems.Items[i]);
+
+      if AClassName = LRec.ClassName then
+      begin
+        Result := i;
+        Break;
+      end;
+    end;
+  end;
+end;
+
+function TigClassCounter.IsValidIndex(const AIndex: Integer): Boolean;
+begin
+  Result := (AIndex >= 0) and (AIndex < FItems.Count);
+end;
+
+// This function will increase the number of a class name in the counter,
+// and return the total number of that class name in the counter.
+function TigClassCounter.Increase(const AClassName: ShortString): Integer;
+var
+  LIndex : Integer;
+  LRec   : TigClassRec;
+begin
+  Result := 0;
+  
+  if AClassName = '' then
+  begin
+    Exit;
+  end;
+
+  LIndex := Self.GetIndex(AClassName);
+
+  if Self.IsValidIndex(LIndex) then
+  begin
+    LRec       := TigClassRec(FItems.Items[LIndex]);
+    LRec.Count := LRec.Count + 1;
+  end
+  else
+  begin
+    LRec := TigClassRec.Create(AClassName);
+    FItems.Add(LRec);
+  end;
+
+  Result := LRec.Count;
+end;
+
+function TigClassCounter.GetCount(const AClassName: ShortString): Integer;
+var
+  i    : Integer;
+  LRec : TigClassRec;
+begin
+  Result := 0;
+
+  if AClassName = '' then
+  begin
+    Exit;
+  end;
+
+  if FItems.Count > 0 then
+  begin
+    for i := 0 to (FItems.Count - 1) do
+    begin
+      LRec := TigClassRec(FItems.Items[i]);
+
+      if AClassName = LRec.Name then
+      begin
+        Inc(Result);
+      end;
+    end;
+  end;
+end;
+
+procedure TigClassCounter.Clear;
+begin
+  FItems.Clear;
 end;
 
 
