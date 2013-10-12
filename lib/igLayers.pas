@@ -262,8 +262,6 @@ uses
 { miniGlue lib }
   igPaintFuncs;
 
-{$R igIcons.res}
-
 
 { TigCustomLayerPanel }
 

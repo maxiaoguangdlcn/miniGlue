@@ -196,9 +196,9 @@ uses
 { Graphics32 }
   GR32_LowLevel,
 { miniGlue lib }
-  igMath,
+  igMath;
 
-  MainForm;
+{$R igIcons.res}
 
 const
   MIN_OBJECT_SPAN    = 2;
