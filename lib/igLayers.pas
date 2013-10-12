@@ -1031,6 +1031,10 @@ begin
       begin
         FPanelTypeCounter.Increase(APanel.ClassName);
       end;
+    end
+    else
+    begin
+      FPanelTypeCounter.Increase(APanel.ClassName);
     end;
     
     // first adding
@@ -1087,6 +1091,10 @@ begin
       begin
         FPanelTypeCounter.Increase(APanel.ClassName);
       end;
+    end
+    else
+    begin
+      FPanelTypeCounter.Increase(APanel.ClassName);
     end;
     
     BlendLayers;
