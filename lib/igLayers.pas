@@ -105,7 +105,7 @@ type
 
     destructor Destroy; override;
 
-    procedure UpdateLayerThumbnail;
+    procedure UpdateLayerThumbnail; virtual;
     procedure UpdateMaskThumbnail;
     procedure Changed; overload;
     procedure Changed(const ARect: TRect); overload;
@@ -497,12 +497,24 @@ end;
 procedure TigCustomLayerPanel.UpdateLayerThumbnail;
 var
   LRect : TRect;
+  LBmp  : TBitmap32;
 begin
   LRect := FRealThumbRect;
   
   FLayerThumb.Clear( Color32(clBtnFace) );
   DrawCheckerboardPattern(FLayerThumb, LRect, True);
-  FLayerThumb.Draw(LRect, FLayerBitmap.BoundsRect, FLayerBitmap);
+
+  LBmp := TBitmap32.Create;
+  try
+    // The thumbnail should not shows the MasterAlpha settings of the layer.
+    // The MasterAlpha only takes effect when layer blending.
+    LBmp.Assign(FLayerBitmap);
+    LBmp.MasterAlpha := 255;
+
+    FLayerThumb.Draw(LRect, LBmp.BoundsRect, LBmp);
+  finally
+    LBmp.Free;
+  end;
 
   InflateRect(LRect, 1, 1);
   FLayerThumb.FrameRectS(LRect, clBlack32);
