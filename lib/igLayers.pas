@@ -89,6 +89,9 @@ type
 
     function GetLayerOpacity: Byte;
 
+    function GetThumbZoomScale(
+      const ASrcWidth, ASrcHeight, AThumbWidth, AThumbHeight: Integer): Single;
+
     procedure SetLayerVisible(AValue: Boolean);
     procedure SetMaskEnabled(AValue: Boolean);
     procedure SetMaskLinked(AValue: Boolean);
@@ -343,6 +346,31 @@ begin
   Result := FLayerBitmap.MasterAlpha and $FF;
 end;
 
+function TigCustomLayerPanel.GetThumbZoomScale(
+  const ASrcWidth, ASrcHeight, AThumbWidth, AThumbHeight: Integer): Single;
+var
+  ws, hs : Single;
+begin
+  if (ASrcWidth <= AThumbWidth) and (ASrcHeight <= AThumbHeight) then
+  begin
+    Result := 1.0;
+  end
+  else
+  begin
+    ws := AThumbWidth  / ASrcWidth;
+    hs := AThumbHeight / ASrcHeight;
+
+    if ws < hs then
+    begin
+      Result := ws;
+    end
+    else
+    begin
+      Result := hs;
+    end;
+  end;
+end;
+
 procedure TigCustomLayerPanel.SetLayerVisible(AValue: Boolean);
 begin
   if FLayerVisible <> AValue then
@@ -423,33 +451,13 @@ procedure TigCustomLayerPanel.CalcRealThumbRect;
 var
   LThumbWidth  : Integer;
   LThumbHeight : Integer;
-  ws, hs       : Single;
+  LScale       : Single;
 begin
-  LThumbWidth  := FLayerThumb.Width  - 4;
-  LThumbHeight := FLayerThumb.Height - 4;
+  LScale := Self.GetThumbZoomScale(FLayerBitmap.Width, FLayerBitmap.Height,
+                                   FLayerThumb.Width - 4, FLayerThumb.Height - 4);
 
-  if (FLayerBitmap.Width  <= LThumbWidth) and
-     (FLayerBitmap.Height <= LThumbHeight) then
-  begin
-    LThumbWidth  := FLayerBitmap.Width;
-    LThumbHeight := FLayerBitmap.Height;
-  end
-  else
-  begin
-    ws := LThumbWidth  / FLayerBitmap.Width;
-    hs := LThumbHeight / FLayerBitmap.Height;
-
-    if ws < hs then
-    begin
-      LThumbWidth  := Round(FLayerBitmap.Width  * ws);
-      LThumbHeight := Round(FLayerBitmap.Height * ws);
-    end
-    else
-    begin
-      LThumbWidth  := Round(FLayerBitmap.Width  * hs);
-      LThumbHeight := Round(FLayerBitmap.Height * hs);
-    end;
-  end;
+  LThumbWidth  := Round(FLayerBitmap.Width  * LScale);
+  LThumbHeight := Round(FLayerBitmap.Height * LScale);
 
   with FRealThumbRect do
   begin
