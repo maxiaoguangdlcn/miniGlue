@@ -32,7 +32,8 @@ interface
 
 uses
 { Delphi }
-  SysUtils, Classes, ActnList, Menus, Controls, ImgList, Dialogs, ExtDlgs,
+  Windows, SysUtils, Classes, ActnList, Menus, Controls, ImgList, Dialogs,
+  ExtDlgs,
 { miniGlue}
   ChildForm;
 
@@ -68,6 +69,14 @@ type
     actnMergeVisible: TAction;
     opnpicdlgLoadLayers: TOpenPictureDialog;
     actnOpen: TAction;
+    mnitmSeparator4: TMenuItem;
+    mnitmNewAdjustmentLayer: TMenuItem;
+    mnitmNewBCLayer: TMenuItem;
+    actnNewAdjustmentLayer: TAction;
+    actnNewBCLayer: TAction;
+    actnShowLayerPopupMenu: TAction;
+    pmLayerForm: TPopupMenu;
+    mnitmPopNewBCLayer: TMenuItem;
     procedure actnCreateNewFileExecute(Sender: TObject);
     procedure actnExitAppExecute(Sender: TObject);
     procedure actnNewLayerExecute(Sender: TObject);
@@ -85,6 +94,11 @@ type
     procedure actnMergeVisibleExecute(Sender: TObject);
     procedure actnMergeVisibleUpdate(Sender: TObject);
     procedure actnOpenExecute(Sender: TObject);
+    procedure actnNewAdjustmentLayerExecute(Sender: TObject);
+    procedure actnNewAdjustmentLayerUpdate(Sender: TObject);
+    procedure actnNewBCLayerExecute(Sender: TObject);
+    procedure actnShowLayerPopupMenuExecute(Sender: TObject);
+    procedure actnShowLayerPopupMenuUpdate(Sender: TObject);
   private
     { Private declarations }
   public
@@ -105,9 +119,11 @@ uses
 { miniGlue lib }
   igLayers,
   igLayerIO,
+  igBrightContrastLayer, 
 { miniGlue }
+  MainForm,
   NewFileForm,
-  MainForm;
+  LayerBrightContrastForm;
 
 {$R *.dfm}
 
@@ -370,6 +386,72 @@ begin
       end;
     end;
   end; 
+end;
+
+procedure TdmMain.actnNewAdjustmentLayerExecute(Sender: TObject);
+begin
+  // do nothing
+end;
+
+procedure TdmMain.actnNewAdjustmentLayerUpdate(Sender: TObject);
+begin
+  actnNewAdjustmentLayer.Enabled := Assigned(gActiveChildForm);
+end;
+
+procedure TdmMain.actnNewBCLayerExecute(Sender: TObject);
+var
+  LOldSelectedIndex : Integer;
+  LLayerPanel       : TigCustomLayerPanel;
+  LModalResult      : TModalResult;
+begin
+  Screen.Cursor := crHourGlass;
+  try
+    with gActiveChildForm do
+    begin
+      LOldSelectedIndex := LayerPanelList.SelectedIndex;
+      
+      LLayerPanel := CreateBrightContrastLayer();
+      LayerPanelList.Insert(LOldSelectedIndex + 1, LLayerPanel);
+
+      frmLayerBrightContrast := TfrmLayerBrightContrast.Create(nil);
+      try
+        frmLayerBrightContrast.AssociateToBCLayerPanel( TigBrightContrastLayerPanel(LLayerPanel) );
+
+        LModalResult := frmLayerBrightContrast.ShowModal;
+      finally
+        FreeAndNil(frmLayerBrightContrast);
+      end;
+
+      case LModalResult of
+        mrOK:
+          begin
+
+          end;
+
+        mrCancel:
+          begin
+            LayerPanelList.CancelLayerPanel(LOldSelectedIndex + 1);
+          end;
+      end;
+    end;
+  finally
+    Screen.Cursor := crDefault;
+  end;
+end;
+
+procedure TdmMain.actnShowLayerPopupMenuExecute(Sender: TObject);
+var
+  LPoint : TPoint;
+begin
+  GetCursorPos(LPoint); // get cursor position on the screen
+
+  // pop up the menu at current position
+  pmLayerForm.Popup(LPoint.X, LPoint.Y);
+end;
+
+procedure TdmMain.actnShowLayerPopupMenuUpdate(Sender: TObject);
+begin
+  actnShowLayerPopupMenu.Enabled := Assigned(gActiveChildForm);
 end;
 
 initialization

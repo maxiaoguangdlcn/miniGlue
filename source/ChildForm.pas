@@ -35,10 +35,14 @@ interface
 {$ENDIF}
 
 uses
+{ Delphi }
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, GR32_Image, GR32, GR32_Layers,
+  Dialogs,
+{ Graphics32 }
+  GR32_Image, GR32, GR32_Layers,
 { miniGlue lib }
-  igLayers;
+  igLayers,
+  igBrightContrastLayer;
 
 type
   TfrmChild = class(TForm)
@@ -64,10 +68,14 @@ type
     procedure AfterSelectedLayerPanelChanged(ASender: TObject);
     procedure AfterLayerPanelChanged(ASender: TObject);
     procedure AfterLayerMerged(AResultPanel: TigCustomLayerPanel);
+    procedure BCLayerThumbDblClick(ASender: TObject);
     procedure LayerThumbDblClick(ASender: TObject); // for testing
   public
     function CreateNormalLayer(const ABackColor: TColor32 = $00000000;
       const AsBackLayer: Boolean = False): TigCustomLayerPanel;
+
+    function CreateBrightContrastLayer(const ABrightAmount: Integer = 0;
+      const AContrastAmount: Integer = 0): TigCustomLayerPanel;
 
     procedure DeleteCurrentLayer;
     procedure SetCallbacksForLayerPanelsInList;
@@ -85,7 +93,8 @@ uses
   igPaintFuncs,
 { miniGlue }
   MainDataModule,
-  LayerForm;
+  LayerForm,
+  LayerBrightContrastForm;
 
 {$R *.dfm}
 
@@ -135,6 +144,46 @@ begin
   end;
 end;
 
+procedure TfrmChild.BCLayerThumbDblClick(ASender: TObject);
+var
+  LOldBright   : Integer;
+  LOldContrast : Integer;
+  LBCPanel     : TigBrightContrastLayerPanel;
+  LModalResult : TModalResult;
+begin
+  if ASender is TigBrightContrastLayerPanel then
+  begin
+    LBCPanel := TigBrightContrastLayerPanel(ASender);
+
+    LOldBright   := LBCPanel.BrightAmount;
+    LOldContrast := LBCPanel.ContrastAmount;
+
+    frmLayerBrightContrast := TfrmLayerBrightContrast.Create(nil);
+    try
+      frmLayerBrightContrast.AssociateToBCLayerPanel(LBCPanel);
+
+      LModalResult := frmLayerBrightContrast.ShowModal;
+    finally
+      FreeAndNil(frmLayerBrightContrast);
+    end;
+
+    case LModalResult of
+      mrOK:
+        begin
+
+        end;
+
+      mrCancel:
+        begin
+          LBCPanel.BrightAmount   := LOldBright;
+          LBCPanel.ContrastAmount := LOldContrast;
+        end;
+    end;
+
+    LBCPanel.Changed;
+  end;
+end;
+
 // for testing ...
 procedure TfrmChild.LayerThumbDblClick(ASender: TObject);
 var
@@ -169,6 +218,26 @@ begin
     OnThumbnailUpdate    := Self.AfterLayerPanelChanged;
     OnLayerThumbDblClick := Self.LayerThumbDblClick;
   end;
+end;
+
+function TfrmChild.CreateBrightContrastLayer(const ABrightAmount: Integer = 0;
+  const AContrastAmount: Integer = 0): TigCustomLayerPanel;
+var
+  LBCPanel : TigBrightContrastLayerPanel;
+begin
+  LBCPanel := TigBrightContrastLayerPanel.Create(FLayerPanelList,
+    imgWorkArea.Bitmap.Width, imgWorkArea.Bitmap.Height);
+
+  with LBCPanel do
+  begin
+    BrightAmount         := ABrightAmount;
+    ContrastAmount       := AContrastAmount;
+    OnChange             := Self.AfterLayerPanelChanged;
+    OnThumbnailUpdate    := Self.AfterLayerPanelChanged;
+    OnLayerThumbDblClick := Self.BCLayerThumbDblClick;
+  end;
+
+  Result := LBCPanel;
 end;
 
 procedure TfrmChild.DeleteCurrentLayer;
@@ -209,6 +278,10 @@ begin
         begin
           OnThumbnailUpdate    := Self.AfterLayerPanelChanged;
           OnLayerThumbDblClick := Self.LayerThumbDblClick;
+        end
+        else if LLayerPanel is TigBrightContrastLayerPanel then
+        begin
+          OnLayerThumbDblClick := Self.BCLayerThumbDblClick;
         end;
       end;
     end;

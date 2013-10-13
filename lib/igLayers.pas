@@ -196,6 +196,7 @@ type
     procedure SelectLayerPanel(const AIndex: Integer);
     procedure DeleteSelectedLayerPanel;
     procedure DeleteLayerPanel(AIndex: Integer);
+    procedure CancelLayerPanel(AIndex: Integer);
 
     function CanFlattenLayers: Boolean;
     function CanMergeSelectedLayerDown: Boolean;
@@ -246,10 +247,11 @@ type
     constructor Create;
     destructor Destroy; override;
 
-    function Increase(const AClassName: ShortString): Integer;
-    function GetCount(const AClassName: ShortString): Integer;
-
+    procedure Increase(const AClassName: ShortString);
+    procedure Decrease(const AClassName: ShortString);
     procedure Clear;
+
+    function GetCount(const AClassName: ShortString): Integer;
   end;
 
 const
@@ -1164,8 +1166,7 @@ end;
 
 procedure TigLayerPanelList.DeleteLayerPanel(AIndex: Integer);
 begin
-  if (FItems.Count = 1) or
-     (not IsValidIndex(AIndex)) then
+  if (FItems.Count = 1) or ( not IsValidIndex(AIndex) ) then
   begin
     Exit;
   end;
@@ -1185,6 +1186,23 @@ begin
   end;
 
   SelectLayerPanel(AIndex);
+end;
+
+// This method is similar to DeleteLayerPanel(), but it will also
+// modifys the statistics in Panel Type Counter.
+procedure TigLayerPanelList.CancelLayerPanel(AIndex: Integer);
+var
+  LPanel : TigCustomLayerPanel;
+begin
+  if (FItems.Count = 1) or ( not IsValidIndex(AIndex) ) then
+  begin
+    Exit;
+  end;
+
+  LPanel := Self.LayerPanels[AIndex];
+  Self.FPanelTypeCounter.Decrease(LPanel.LayerName);
+
+  DeleteLayerPanel(AIndex);
 end;
 
 function TigLayerPanelList.CanFlattenLayers: Boolean;
@@ -1372,7 +1390,7 @@ end;
 
 function TigLayerPanelList.IsValidIndex(const AIndex: Integer): Boolean;
 begin
-  Result := (FItems.Count > 0) and (AIndex >= 0) and (AIndex < FItems.Count);
+  Result := (AIndex >= 0) and (AIndex < FItems.Count);
 end;
 
 function TigLayerPanelList.GetHiddenLayerCount: Integer;
@@ -1452,15 +1470,12 @@ begin
   Result := (AIndex >= 0) and (AIndex < FItems.Count);
 end;
 
-// This function will increase the number of a class name in the counter,
-// and return the total number of that class name in the counter.
-function TigClassCounter.Increase(const AClassName: ShortString): Integer;
+// This method will increase the number of a class name in the counter.
+procedure TigClassCounter.Increase(const AClassName: ShortString);
 var
   LIndex : Integer;
   LRec   : TigClassRec;
 begin
-  Result := 0;
-  
   if AClassName = '' then
   begin
     Exit;
@@ -1478,8 +1493,36 @@ begin
     LRec := TigClassRec.Create(AClassName);
     FItems.Add(LRec);
   end;
+end;
 
-  Result := LRec.Count;
+// This method will decrease the number of a class name in the counter.
+procedure TigClassCounter.Decrease(const AClassName: ShortString);
+var
+  LIndex : Integer;
+  LRec   : TigClassRec;
+begin
+  if AClassName = '' then
+  begin
+    Exit;
+  end;
+
+  LIndex := Self.GetIndex(AClassName);
+
+  if Self.IsValidIndex(LIndex) then
+  begin
+    LRec       := TigClassRec(FItems.Items[LIndex]);
+    LRec.Count := LRec.Count - 1;
+
+    if LRec.Count = 0 then
+    begin
+      FItems.Delete(LIndex);
+    end;
+  end;
+end;
+
+procedure TigClassCounter.Clear;
+begin
+  FItems.Clear;
 end;
 
 function TigClassCounter.GetCount(const AClassName: ShortString): Integer;
@@ -1506,11 +1549,6 @@ begin
       end;
     end;
   end;
-end;
-
-procedure TigClassCounter.Clear;
-begin
-  FItems.Clear;
 end;
 
 

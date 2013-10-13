@@ -57,6 +57,7 @@ type
     lblLayerOpacity: TLabel;
     tlbtnDeleteLayer: TToolButton;
     tlbrAddMask: TToolButton;
+    tlbtnNewFillAdjustmentLayer: TToolButton;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure ChangeLayerBlendMode(Sender: TObject);

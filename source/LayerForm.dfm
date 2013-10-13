@@ -1,6 +1,6 @@
 object frmLayers: TfrmLayers
-  Left = 165
-  Top = 208
+  Left = 311
+  Top = 222
   Width = 240
   Height = 502
   BorderStyle = bsSizeToolWin
@@ -22,7 +22,7 @@ object frmLayers: TfrmLayers
   TextHeight = 13
   object tlbrLayers: TToolBar
     Left = 0
-    Top = 451
+    Top = 434
     Width = 232
     Height = 24
     Align = alBottom
@@ -42,20 +42,28 @@ object frmLayers: TfrmLayers
       ImageIndex = 1
       Style = tbsSeparator
     end
-    object tlbrAddMask: TToolButton
+    object tlbtnNewFillAdjustmentLayer: TToolButton
       Left = 8
       Top = 0
+      Cursor = crHandPoint
+      Action = dmMain.actnShowLayerPopupMenu
+    end
+    object tlbrAddMask: TToolButton
+      Left = 31
+      Top = 0
+      Cursor = crHandPoint
       Action = dmMain.actnAddMask
     end
     object tlbnNewLayer: TToolButton
-      Left = 31
+      Left = 54
       Top = 0
       Cursor = crHandPoint
       Action = dmMain.actnNewLayer
     end
     object tlbtnDeleteLayer: TToolButton
-      Left = 54
+      Left = 77
       Top = 0
+      Cursor = crHandPoint
       Action = dmMain.actnDeleteLayer
     end
   end

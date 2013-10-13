@@ -18,15 +18,17 @@ uses
   igMath in '..\lib\igMath.pas',
   igLayerPanelManager in '..\lib\igLayerPanelManager.pas',
   igPng in '..\lib\igPng.pas',
-  //igJpg in '..\lib\igJpg.pas',
   igLayerIO in '..\lib\igLayerIO.pas',
   igGraphicsLayerIO in '..\lib\igGraphicsLayerIO.pas',
-  igBase in '..\lib\igBase.pas';
+  igBase in '..\lib\igBase.pas',
+  LayerBrightContrastForm in 'LayerBrightContrastForm.pas' {frmLayerBrightContrast},
+  igBrightContrastLayer in '..\lib\igBrightContrastLayer.pas';
 
 begin
   Application.Initialize;
   Application.CreateForm(TdmMain, dmMain);
   Application.CreateForm(TfrmMain, frmMain);
   Application.CreateForm(TfrmLayers, frmLayers);
+  Application.CreateForm(TfrmLayerBrightContrast, frmLayerBrightContrast);
   Application.Run;
 end.
