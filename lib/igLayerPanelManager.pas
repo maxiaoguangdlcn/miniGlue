@@ -911,9 +911,16 @@ begin
             end;
         end;
       end;
+    end
+    else
+    begin
+      // If the Double-Click has not been fired, we mark
+      // the mouse left button is pressed. Doing this is for
+      // preventing from the Double-Click opens a dialog and
+      // after the dialog is closed, the current panel is still
+      // in Moving mode.
+      FLeftButtonDown := True;
     end;
-
-    FLeftButtonDown := True;
   end;
 
   inherited; // respond to OnMouseDown
