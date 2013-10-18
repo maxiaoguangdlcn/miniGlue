@@ -22,7 +22,7 @@ object frmLayers: TfrmLayers
   TextHeight = 13
   object tlbrLayers: TToolBar
     Left = 0
-    Top = 434
+    Top = 451
     Width = 232
     Height = 24
     Align = alBottom

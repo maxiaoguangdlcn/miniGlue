@@ -119,7 +119,7 @@ end;
 procedure TfrmLayers.ggbrLayerOpacityChange(Sender: TObject);
 begin
   edtLayerOpacity.Text := IntToStr(ggbrLayerOpacity.Position);
-  
+
   if Assigned(gActiveChildForm) then
   begin
     with gActiveChildForm do

@@ -1,5 +1,5 @@
 object frmChild: TfrmChild
-  Left = 275
+  Left = 367
   Top = 179
   Width = 638
   Height = 417

@@ -1,0 +1,180 @@
+<?xml version="1.0"?>
+<CONFIG>
+  <ProjectOptions>
+    <Version Value="9"/>
+    <PathDelim Value="\"/>
+    <General>
+      <Flags>
+        <MainUnitHasUsesSectionForAllUnits Value="False"/>
+        <MainUnitHasCreateFormStatements Value="False"/>
+        <MainUnitHasTitleStatement Value="False"/>
+      </Flags>
+      <SessionStorage Value="InProjectDir"/>
+      <MainUnit Value="0"/>
+      <Title Value="miniGlue"/>
+      <UseAppBundle Value="False"/>
+      <ResourceType Value="res"/>
+    </General>
+    <i18n>
+      <EnableI18N LFM="False"/>
+    </i18n>
+    <VersionInfo>
+      <StringTable ProductVersion=""/>
+    </VersionInfo>
+    <BuildModes Count="1">
+      <Item1 Name="Default" Default="True"/>
+    </BuildModes>
+    <PublishOptions>
+      <Version Value="2"/>
+      <IncludeFileFilter Value="*.(pas|pp|inc|lfm|lpr|lrs|lpi|lpk|sh|xml)"/>
+      <ExcludeFileFilter Value="*.(bak|ppu|o|so);*~;backup"/>
+    </PublishOptions>
+    <RunParams>
+      <local>
+        <FormatVersion Value="1"/>
+      </local>
+    </RunParams>
+    <RequiredPackages Count="2">
+      <Item1>
+        <PackageName Value="GR32_L"/>
+      </Item1>
+      <Item2>
+        <PackageName Value="LCL"/>
+      </Item2>
+    </RequiredPackages>
+    <Units Count="16">
+      <Unit0>
+        <Filename Value="miniGlue.dpr"/>
+        <IsPartOfProject Value="True"/>
+      </Unit0>
+      <Unit1>
+        <Filename Value="MainForm.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="frmMain"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="MainForm"/>
+      </Unit1>
+      <Unit2>
+        <Filename Value="MainDataModule.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="dmMain"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="DataModule"/>
+        <UnitName Value="MainDataModule"/>
+      </Unit2>
+      <Unit3>
+        <Filename Value="ChildForm.pas"/>
+        <IsPartOfProject Value="True"/>
+        <HasResources Value="True"/>
+        <UnitName Value="ChildForm"/>
+      </Unit3>
+      <Unit4>
+        <Filename Value="..\lib\igPaintFuncs.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="igPaintFuncs"/>
+      </Unit4>
+      <Unit5>
+        <Filename Value="NewFileForm.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="frmNewFile"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="NewFileForm"/>
+      </Unit5>
+      <Unit6>
+        <Filename Value="LayerForm.pas"/>
+        <IsPartOfProject Value="True"/>
+        <HasResources Value="True"/>
+        <UnitName Value="LayerForm"/>
+      </Unit6>
+      <Unit7>
+        <Filename Value="..\lib\igLayers.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="igLayers"/>
+      </Unit7>
+      <Unit8>
+        <Filename Value="..\lib\igMath.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="igMath"/>
+      </Unit8>
+      <Unit9>
+        <Filename Value="..\lib\igLayerPanelManager.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="igLayerPanelManager"/>
+      </Unit9>
+      <Unit10>
+        <Filename Value="..\lib\igGraphics.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="igGraphics"/>
+      </Unit10>
+      <Unit11>
+        <Filename Value="..\lib\igPng.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="igPng"/>
+      </Unit11>
+      <Unit12>
+        <Filename Value="..\lib\igJpg.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="igJpg"/>
+      </Unit12>
+      <Unit13>
+        <Filename Value="..\lib\igLayerIO.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="igLayerIO"/>
+      </Unit13>
+      <Unit14>
+        <Filename Value="..\lib\igGraphicsLayerIO.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="igGraphicsLayerIO"/>
+      </Unit14>
+      <Unit15>
+        <Filename Value="..\externals\Graphics32_add_ons\GR32_Add_BlendModes.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="GR32_Add_BlendModes"/>
+      </Unit15>
+    </Units>
+  </ProjectOptions>
+  <CompilerOptions>
+    <Version Value="11"/>
+    <PathDelim Value="\"/>
+    <SearchPaths>
+      <IncludeFiles Value="..\lib;..\externals\Graphics32_add_ons;..\..\..\GR32_PNG_library;$(ProjOutDir)"/>
+      <Libraries Value="..\lib"/>
+      <OtherUnitFiles Value="..\lib;..\externals\Graphics32_add_ons"/>
+      <UnitOutputDirectory Value="..\bin"/>
+      <ObjectPath Value="..\lib"/>
+    </SearchPaths>
+    <Parsing>
+      <SyntaxOptions>
+        <SyntaxMode Value="Delphi"/>
+      </SyntaxOptions>
+    </Parsing>
+    <Linking>
+      <Options>
+        <Win32>
+          <GraphicApplication Value="True"/>
+        </Win32>
+      </Options>
+    </Linking>
+    <Other>
+      <CompilerMessages>
+        <MsgFileName Value=""/>
+      </CompilerMessages>
+      <CompilerPath Value="$(CompPath)"/>
+    </Other>
+  </CompilerOptions>
+  <Debugging>
+    <Exceptions Count="3">
+      <Item1>
+        <Name Value="EAbort"/>
+      </Item1>
+      <Item2>
+        <Name Value="ECodetoolError"/>
+      </Item2>
+      <Item3>
+        <Name Value="EFOpenError"/>
+      </Item3>
+    </Exceptions>
+  </Debugging>
+</CONFIG>

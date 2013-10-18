@@ -1,5 +1,5 @@
 object frmNewFile: TfrmNewFile
-  Left = 124
+  Left = 165
   Top = 255
   BorderStyle = bsDialog
   Caption = 'New'
