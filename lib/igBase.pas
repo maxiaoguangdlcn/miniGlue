@@ -99,6 +99,8 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     function ActivateTool(ATool: TigToolClass):Boolean;
+
+    property ActiveTool : TigTool read FActiveTool;
   end;
 
   TigAgent = class(TComponent)

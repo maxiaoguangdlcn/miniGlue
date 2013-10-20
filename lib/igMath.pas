@@ -39,14 +39,27 @@ uses
   Types;
 
 function GetRectSize(const ARect: TRect): TSize;
+function AddRects(const ARect1, ARect2: TRect): TRect;
+
 
 implementation
+
+uses
+  Math;
 
 
 function GetRectSize(const ARect: TRect): TSize;
 begin
   Result.cx := ARect.Right - ARect.Left + 1;
   Result.cy := ARect.Bottom - ARect.Top + 1;
+end;
+
+function AddRects(const ARect1, ARect2: TRect): TRect;
+begin
+  Result.Left   := Min(ARect1.Left,   ARect2.Left);
+  Result.Top    := Min(ARect1.Top,    ARect2.Top);
+  Result.Right  := Max(ARect1.Right,  ARect2.Right);
+  Result.Bottom := Max(ARect1.Bottom, ARect2.Bottom);
 end;
 
 end.
