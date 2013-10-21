@@ -87,28 +87,29 @@ type
     FInstancesList : TList;
     FActiveTool: TigTool;
     FActivePaintBox: TigPaintBox;
-    function LoadTool(AToolClass: TigToolClass): TigTool;
-    function ReadyToSwitchTool : Boolean;
     function IsToolSwitched(ATool: TigTool):Boolean;
+    function LoadTool(AToolClass: TigToolClass): TigTool;
+    procedure MaintainTool(ATool : TigTool);
+    function ReadyToSwitchTool : Boolean;
     procedure SetActivePaintBox(const Value: TigPaintBox);
   protected
     procedure ActivePaintBoxSwitched;
-    procedure Notification(AComponent: TComponent; Operation: TOperation); override;
-    procedure RegisterListener(AAgent: TigAgent);
     procedure DoMouseDown(Sender: TigPaintBox; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer; Layer: TigCustomLayerPanel);
     procedure DoMouseMove(Sender: TigPaintBox; Shift: TShiftState; X,
       Y: Integer; Layer: TigCustomLayerPanel);
     procedure DoMouseUp(Sender: TigPaintBox; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer; Layer: TigCustomLayerPanel);
+    procedure Notification(AComponent: TComponent; Operation: TOperation); override;
+    procedure RegisterListener(AAgent: TigAgent);
 
   public
     constructor Create(AOwner: TComponent); override;
-    function ActivateTool(ATool: TigToolClass):Boolean;
+    function ActivateTool(AToolClass: TigToolClass):Boolean; overload;
+    function ActivateTool(AToolInstance: TigTool):Boolean; overload;
 
     property ActivePaintBox : TigPaintBox read FActivePaintBox
       write SetActivePaintBox;
-
     property ActiveTool : TigTool read FActiveTool;
   end;
 
@@ -227,14 +228,74 @@ var
 
 
 function  GIntegrator : TigIntegrator;
-//To avoid this instance being owned by Delphi IDE (that cause error when upgrade),
-//I made it read only by wrap it with this routine.
+// To avoid this instance being owned by Delphi IDE (that cause error when upgrade),
+// I made it only created when is needed by wrap it with this routine.
+// To keep it singleton instance, I made it read only by declare variable under
+// implementation.
 begin
   if UIntegrator = nil then
     UIntegrator := TigIntegrator.Create(Application);
   Result := UIntegrator;
-end;    
+end;
+
+
+{ TigAgent }
+
+constructor TigAgent.Create(AOwner: TComponent);
+begin
+  inherited;
+  GIntegrator.RegisterListener(Self);
+end;
+
+procedure TigAgent.DoActivePaintBoxSwitched;
+begin
+  if Assigned(FOnActivePaintBoxSwitched) then
+    FOnActivePaintBoxSwitched(Self);
+end;
+
+
 { TigIntegrator }
+
+
+function TigIntegrator.ActivateTool(AToolInstance: TigTool): Boolean;
+begin
+  Assert(Assigned(AToolInstance),'Cannot activate a nil drawing tool'); //error should be a programatic wrong logic.
+  
+  Result := Self.ReadyToSwitchTool; //ask wether current active tool is not working in progress.
+  if Result then
+  begin
+    Result := Self.IsToolSwitched(AToolInstance); //ask the new tool to be active
+  end;
+
+end;
+
+function TigIntegrator.ActivateTool(AToolClass: TigToolClass): Boolean;
+var
+  LTool : TigTool;
+begin
+  Result := Self.ReadyToSwitchTool; //ask wether current active tool is not working in progress.
+
+  if Result then
+  begin
+    LTool := GIntegrator.LoadTool(AToolClass);
+    Assert(Assigned(LTool)); //error should be a programatic wrong logic.
+
+    Result := Self.IsToolSwitched(LTool); //ask the new tool to be active
+  end;
+end;
+
+
+
+
+procedure TigIntegrator.ActivePaintBoxSwitched;
+var i : Integer;
+begin
+  for i := 0 to FListeners.Count -1 do
+  begin
+    TigAgent( FListeners[i] ).DoActivePaintBoxSwitched;
+  end;
+
+end;
 
 constructor TigIntegrator.Create(AOwner: TComponent);
 var
@@ -278,6 +339,23 @@ begin
     FActiveTool.DoMouseUp(Sender, Button, Shift, X,Y, Layer);
 end;
 
+function TigIntegrator.IsToolSwitched(ATool: TigTool): Boolean;
+begin
+  Result := True;
+  FActiveTool := ATool;
+
+  //todo: ask the new tool wether all requirement is available
+  {begin
+    ///dont use FLastTool := atool  <--- we need integrated properly
+    //SetLastTool(ATool); //Explicit Update Integrator's Events
+    // a line above may also be replaced by using property: LastTool := ATool;
+  end;}
+
+  {make sure the active tool is under maintained}
+  MaintainTool(ATool);
+end;
+
+
 // Find a tool instance, create one if not found
 function TigIntegrator.LoadTool(AToolClass: TigToolClass): TigTool;
 var i : Integer;
@@ -289,17 +367,56 @@ begin
     if TigTool(FInstancesList[i]) is AToolClass then
     begin
       Result := TigTool(FInstancesList[i]);
-      Break;
+      //We found the expected tool class.
+      Exit;
     end;
   end;
 
   if not Assigned(Result) then
   begin
     Result := AToolClass.Create(Application); //it must by owned by something.
-    FInstancesList.Add(Result);
+    MaintainTool(Result);
   end;
 
 end;
+
+procedure TigIntegrator.MaintainTool(ATool: TigTool);
+// we want to make sure that any tool being destroyed is also deleted in our list.
+begin
+  if FInstancesList.IndexOf(ATool) < 0 then
+  begin
+    FInstancesList.Add(ATool);    //register to our maintained tool.
+    ATool.FreeNotification(Self); //tell the tool to report when she were destroying
+  end;
+end;
+
+procedure TigIntegrator.Notification(AComponent: TComponent;
+  Operation: TOperation);
+var
+  LTool : TigTool;
+  i : Integer;
+begin
+  inherited;
+  if Operation = opRemove then
+  begin
+    if (AComponent = ActivePaintBox) then
+    begin
+      ActivePaintBox := nil; //broadcast to agents
+    end
+
+    else if (AComponent is TigTool) then
+    begin
+      LTool := AComponent as TigTool;
+      if LTool = ActiveTool then
+        FActiveTool := nil;
+      if FInstancesList.IndexOf(LTool) > 0 then
+        FInstancesList.Delete(FInstancesList.IndexOf(LTool));
+    end
+
+  end;
+
+end;
+
 
 function TigIntegrator.ReadyToSwitchTool: Boolean;
 begin
@@ -307,6 +424,96 @@ begin
   if (FActiveTool <> nil) then
     Result := FActiveTool.CanBeSwitched;
 end;
+
+
+procedure TigIntegrator.RegisterListener(AAgent: TigAgent);
+begin
+  if FListeners.IndexOf(AAgent) < 0 then
+  begin
+    FListeners.Add(AAgent);
+    AAgent.FreeNotification(Self); //tell the agent to report when she were destroying
+  end;
+end;
+
+procedure TigIntegrator.SetActivePaintBox(const Value: TigPaintBox);
+begin
+  if FActivePaintBox <> Value then
+  begin
+    FActivePaintBox := Value;
+    ActivePaintBoxSwitched;
+    if Assigned(Value) then
+      Value.FreeNotification(Self); //tell paintobx to report when she were destroying
+  end;
+end;
+
+
+{ TigPaintBox }
+
+procedure TigPaintBox.AfterLayerCombined(ASender: TObject;
+  const ARect: TRect);
+begin
+  Bitmap.FillRectS(ARect, $00FFFFFF);  // must be transparent white
+  Bitmap.Draw(ARect, ARect, FLayerList.CombineResult);
+  Bitmap.Changed(ARect);
+end;
+
+constructor TigPaintBox.Create(AOwner: TComponent);
+var
+  LLayerPanel : TigCustomLayerPanel;
+begin
+  inherited;
+  Options := [pboAutoFocus];
+  TabStop := True;
+  //FAgent := TigAgent.Create(self); //autodestroy. //maybe better to use integrator directly.
+  FLayerList := TigLayerPanelList.Create; //TPersistent is not autodestroy
+  FLayerList.OnLayerCombined := AfterLayerCombined;
+
+  if not (csDesigning in self.ComponentState) then
+  begin
+    // set background size before create background layer
+    Bitmap.SetSize(300,300);
+    Bitmap.Clear($00000000);
+
+    // create background layer
+    LLayerPanel :=  TigNormalLayerPanel.Create(FLayerList,
+      Bitmap.Width, Bitmap.Height, clWhite32, True);
+
+    FLayerList.Add(LLayerPanel);
+  end;  
+end;
+
+destructor TigPaintBox.Destroy;
+begin
+  FLayerList.Free;
+  inherited;
+end;
+
+procedure TigPaintBox.MouseDown(Button: TMouseButton; Shift: TShiftState;
+  X, Y: Integer);
+begin
+  inherited;
+  GIntegrator.DoMouseDown(Self, Button, Shift, X, Y, FLayerList.SelectedPanel);
+end;
+
+procedure TigPaintBox.MouseMove(Shift: TShiftState; X, Y: Integer);
+begin
+  inherited;
+  GIntegrator.DoMouseMove(Self, Shift, X, Y, FLayerList.SelectedPanel);
+end;
+
+procedure TigPaintBox.MouseUp(Button: TMouseButton; Shift: TShiftState; X,
+  Y: Integer);
+begin
+  inherited;
+  GIntegrator.DoMouseUp(Self, Button, Shift, X, Y, FLayerList.SelectedPanel);
+end;
+
+procedure TigPaintBox.SetFocus;
+begin
+  inherited;
+  GIntegrator.ActivePaintBox := Self;
+end;
+
 
 { TigTool }
 
@@ -439,159 +646,11 @@ begin
   //descendant may do something
 end;
 
-function TigIntegrator.ActivateTool(ATool: TigToolClass): Boolean;
-var
-  LTool : TigTool;
-begin
-  Result := Self.ReadyToSwitchTool; //ask wether current active tool is not working in progress.
 
-  if Result then
-  begin
-    LTool := GIntegrator.LoadTool(ATool);
-    Assert(Assigned(LTool)); //error should be a programatic wrong logic.
 
-    result := Self.IsToolSwitched(LTool); //ask the new tool to be active
-  end;
-end;
 
-function TigIntegrator.IsToolSwitched(ATool: TigTool): Boolean;
-begin
-  //todo: ask the new tool wether all requirement is available 
-  Result := True;
-  FActiveTool := ATool;
-  {begin
-    ///dont use FLastTool := atool  <--- we need integrated properly
-    //SetLastTool(ATool); //Explicit Update Integrator's Events
-    // a line above may also be replaced by using property: LastTool := ATool;
-  end;}
-  
-end;
 
-procedure TigIntegrator.SetActivePaintBox(const Value: TigPaintBox);
-begin
-  if FActivePaintBox <> Value then
-  begin
-    FActivePaintBox := Value;
-    ActivePaintBoxSwitched;
-    if Assigned(Value) then
-      Value.FreeNotification(Self); //tell paintobx to report when she were destroying
-  end;
-end;
 
-procedure TigIntegrator.ActivePaintBoxSwitched;
-var i : Integer;
-begin
-  for i := 0 to FListeners.Count -1 do
-  begin
-    TigAgent( FListeners[i] ).DoActivePaintBoxSwitched;
-  end;
-
-end;
-
-procedure TigIntegrator.RegisterListener(AAgent: TigAgent);
-begin
-  if FListeners.IndexOf(AAgent) < 0 then
-  begin
-    FListeners.Add(AAgent);
-    AAgent.FreeNotification(Self); //tell the agent to report when she were destroying
-  end;
-end;
-
-procedure TigIntegrator.Notification(AComponent: TComponent;
-  Operation: TOperation);
-begin
-  inherited;
-  if Operation = opRemove then
-  begin
-    if (AComponent = ActivePaintBox) then
-    begin
-      ActivePaintBox := nil; //broadcast to agents
-    end;
-
-  end;
-
-end;
-
-{ TigPaintBox }
-
-procedure TigPaintBox.AfterLayerCombined(ASender: TObject;
-  const ARect: TRect);
-begin
-  Bitmap.FillRectS(ARect, $00FFFFFF);  // must be transparent white
-  Bitmap.Draw(ARect, ARect, FLayerList.CombineResult);
-  Bitmap.Changed(ARect);
-end;
-
-constructor TigPaintBox.Create(AOwner: TComponent);
-var
-  LLayerPanel : TigCustomLayerPanel;
-begin
-  inherited;
-  Options := [pboAutoFocus];
-  TabStop := True;
-  //FAgent := TigAgent.Create(self); //autodestroy. //maybe better to use integrator directly.
-  FLayerList := TigLayerPanelList.Create; //TPersistent is not autodestroy
-  FLayerList.OnLayerCombined := AfterLayerCombined;
-
-  if not (csDesigning in self.ComponentState) then
-  begin
-    // set background size before create background layer
-    Bitmap.SetSize(300,300);
-    Bitmap.Clear($00000000);
-
-    // create background layer
-    LLayerPanel :=  TigNormalLayerPanel.Create(FLayerList,
-      Bitmap.Width, Bitmap.Height, clWhite32, True);
-
-    FLayerList.Add(LLayerPanel);
-  end;  
-end;
-
-destructor TigPaintBox.Destroy;
-begin
-  FLayerList.Free;
-  inherited;
-end;
-
-procedure TigPaintBox.MouseDown(Button: TMouseButton; Shift: TShiftState;
-  X, Y: Integer);
-begin
-  inherited;
-  GIntegrator.DoMouseDown(Self, Button, Shift, X, Y, FLayerList.SelectedPanel);
-end;
-
-procedure TigPaintBox.MouseMove(Shift: TShiftState; X, Y: Integer);
-begin
-  inherited;
-  GIntegrator.DoMouseMove(Self, Shift, X, Y, FLayerList.SelectedPanel);
-end;
-
-procedure TigPaintBox.MouseUp(Button: TMouseButton; Shift: TShiftState; X,
-  Y: Integer);
-begin
-  inherited;
-  GIntegrator.DoMouseUp(Self, Button, Shift, X, Y, FLayerList.SelectedPanel);
-end;
-
-procedure TigPaintBox.SetFocus;
-begin
-  inherited;
-  GIntegrator.ActivePaintBox := Self;
-end;
-
-{ TigAgent }
-
-constructor TigAgent.Create(AOwner: TComponent);
-begin
-  inherited;
-  GIntegrator.RegisterListener(Self);
-end;
-
-procedure TigAgent.DoActivePaintBoxSwitched;
-begin
-  if Assigned(FOnActivePaintBoxSwitched) then
-    FOnActivePaintBoxSwitched(Self);
-end;
 
 initialization
   //UIntegrator := TigIntegrator.Create(Application);
