@@ -256,7 +256,6 @@ end;
 
 { TigIntegrator }
 
-
 function TigIntegrator.ActivateTool(AToolInstance: TigTool): Boolean;
 begin
   Assert(Assigned(AToolInstance),'Cannot activate a nil drawing tool'); //error should be a programatic wrong logic.
@@ -285,8 +284,6 @@ begin
 end;
 
 
-
-
 procedure TigIntegrator.ActivePaintBoxSwitched;
 var i : Integer;
 begin
@@ -296,6 +293,7 @@ begin
   end;
 
 end;
+
 
 constructor TigIntegrator.Create(AOwner: TComponent);
 var
@@ -323,6 +321,7 @@ begin
   if Assigned(FActiveTool) then
     FActiveTool.DoMouseDown(Sender, Button, Shift, X,Y, Layer);
 end;
+
 
 procedure TigIntegrator.DoMouseMove(Sender: TigPaintBox;
   Shift: TShiftState; X, Y: Integer; Layer: TigCustomLayerPanel);
@@ -389,6 +388,7 @@ begin
     ATool.FreeNotification(Self); //tell the tool to report when she were destroying
   end;
 end;
+
 
 procedure TigIntegrator.Notification(AComponent: TComponent;
   Operation: TOperation);

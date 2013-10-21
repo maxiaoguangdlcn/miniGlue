@@ -1,6 +1,6 @@
 object frmMain: TfrmMain
-  Left = 192
-  Top = 129
+  Left = 214
+  Top = 134
   Width = 870
   Height = 640
   Caption = 'Paint Brush Demo'
@@ -18,7 +18,7 @@ object frmMain: TfrmMain
     Left = 0
     Top = 211
     Width = 862
-    Height = 385
+    Height = 402
     Align = alClient
   end
   object Panel1: TPanel

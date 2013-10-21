@@ -35,7 +35,7 @@ uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, ExtCtrls,
   GR32_Image, GR32,
-  igBase;
+  igBase, igTool_PaintBrush;
 
 type
   TfrmMain = class(TForm)
@@ -60,6 +60,7 @@ type
     procedure cmbbxBlendModeChange(Sender: TObject);
     procedure btnResetBackgroundClick(Sender: TObject);
   private
+    FBrushTool : TigPaintBrush;
     procedure SetPaintingStroke;
     procedure SetPaintingOpacity;
   public
@@ -73,8 +74,7 @@ implementation
 
 uses
   Math,
-  GR32_Add_BlendModes,
-  igTool_PaintBrush;
+  GR32_Add_BlendModes;
 
 {$R *.dfm}
 
@@ -210,10 +210,8 @@ end;
 
 procedure TfrmMain.SetPaintingStroke;
 var
-  LBrush : TigPaintBrush;
   LBmp   : TBitmap32;
 begin
-  LBrush := TigPaintBrush( GIntegrator.ActiveTool );
 
   LBmp := TBitmap32.Create;
   try
@@ -224,24 +222,22 @@ begin
     imgStrokePreview.Bitmap.Assign(LBmp);
 
     InvertBitamp(LBmp);
-    LBrush.SetPaintingStroke(LBmp);
+    FBrushTool.SetPaintingStroke(LBmp);
   finally
     LBmp.Free;
   end;
 end;
 
 procedure TfrmMain.SetPaintingOpacity;
-var
-  LBrush : TigPaintBrush;
 begin
-  LBrush         := TigPaintBrush( GIntegrator.ActiveTool );
-  LBrush.Opacity := scrlbrBrushOpacity.Position;
+  FBrushTool.Opacity := scrlbrBrushOpacity.Position;
 end;
 
 procedure TfrmMain.FormCreate(Sender: TObject);
 begin
   //set a drawing tool for mouse operation's response.
-  GIntegrator.ActivateTool(TigPaintBrush);
+  FBrushTool := TigPaintBrush.Create(Self); //autodestroy
+  GIntegrator.ActivateTool(FBrushTool);
 
   SetPaintingStroke;
 
@@ -263,26 +259,19 @@ end;
 
 procedure TfrmMain.shpBrushColorMouseDown(Sender: TObject; Button: TMouseButton;
   Shift: TShiftState; X, Y: Integer);
-var
-  LBrush : TigPaintBrush;
 begin
-  LBrush := TigPaintBrush( GIntegrator.ActiveTool );
-
   ColorDialog.Color := shpBrushColor.Brush.Color;
 
   if ColorDialog.Execute then
   begin
     shpBrushColor.Brush.Color := ColorDialog.Color;
-    LBrush.Color              := Color32(ColorDialog.Color);
+    FBrushTool.Color          := Color32(ColorDialog.Color);
   end;
 end;
 
 procedure TfrmMain.cmbbxBlendModeChange(Sender: TObject);
-var
-  LBrush : TigPaintBrush;
 begin
-  LBrush           := TigPaintBrush( GIntegrator.ActiveTool );
-  LBrush.BlendMode := TBlendMode32(cmbbxBlendMode.ItemIndex);
+  FBrushTool.BlendMode := TBlendMode32(cmbbxBlendMode.ItemIndex);
 end;
 
 procedure TfrmMain.btnResetBackgroundClick(Sender: TObject);
