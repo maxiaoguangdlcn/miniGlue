@@ -345,6 +345,7 @@ type
   end;
 
   function BlendModeList: TStringList;
+  procedure GetBlendModeList(AList: TStrings); //safety: dont create, just fill.
   function GetBlendMode(Index: Integer): TPixelCombineEvent;
   function GetBlendIndex(Mode: TPixelCombineEvent): Integer;
   function GetBlendModeString(const Mode: TBlendMode32): string;
@@ -375,9 +376,15 @@ const
 function BlendModeList: TStringList;
 begin
   Result := TStringList.Create;
+  GetBlendModeList(Result);
+end;
 
-  with Result do
+procedure GetBlendModeList(AList: TStrings);
+begin
+  with AList do
   begin
+    BeginUpdate();
+    try
     Add('Normal');
     Add('Multiply');
     Add('Screen');
@@ -416,6 +423,9 @@ begin
     Add('Green');
     Add('Blue');
     Add('Dissolve');
+    finally
+      EndUpdate;
+    end;
   end;
 end;
 

@@ -86,19 +86,28 @@ type
     FListeners: TList;
     FInstancesList : TList;
     FActiveTool: TigTool;
+    FActivePaintBox: TigPaintBox;
     function LoadTool(AToolClass: TigToolClass): TigTool;
     function ReadyToSwitchTool : Boolean;
     function IsToolSwitched(ATool: TigTool):Boolean;
+    procedure SetActivePaintBox(const Value: TigPaintBox);
   protected
+    procedure ActivePaintBoxSwitched;
+    procedure Notification(AComponent: TComponent; Operation: TOperation); override;
+    procedure RegisterListener(AAgent: TigAgent);
     procedure DoMouseDown(Sender: TigPaintBox; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer; Layer: TigCustomLayerPanel);
     procedure DoMouseMove(Sender: TigPaintBox; Shift: TShiftState; X,
       Y: Integer; Layer: TigCustomLayerPanel);
     procedure DoMouseUp(Sender: TigPaintBox; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer; Layer: TigCustomLayerPanel);
+
   public
     constructor Create(AOwner: TComponent); override;
     function ActivateTool(ATool: TigToolClass):Boolean;
+
+    property ActivePaintBox : TigPaintBox read FActivePaintBox
+      write SetActivePaintBox;
 
     property ActiveTool : TigTool read FActiveTool;
   end;
@@ -107,6 +116,14 @@ type
   { the event listener of drawing-canvas
     or redirection for such arranging layers
   }
+  private
+    FOnActivePaintBoxSwitched: TNotifyEvent;
+  protected
+    procedure DoActivePaintBoxSwitched;
+  public
+    constructor Create(AOwner: TComponent); override;
+  published
+    property OnActivePaintBoxSwitch: TNotifyEvent read FOnActivePaintBoxSwitched write FOnActivePaintBoxSwitched;
   end;
 
 
@@ -124,6 +141,8 @@ type
   public
     constructor Create(AOwner : TComponent); override;
     destructor Destroy; override;
+    procedure SetFocus; override;
+
     property LayerList : TigLayerPanelList read FLayerList;
   published
     property Align;
@@ -193,14 +212,28 @@ type
   TigTheme = class(TComponent)
   end;
 
-{GLOBAL}
-var
-  GIntegrator : TigIntegrator = nil;
+
+{GLOBAL SCOPE}
+function  GIntegrator : TigIntegrator; //read only
 
 
 implementation
 
 
+{UNIT SCOPE}
+var
+  UIntegrator : TigIntegrator = nil;
+
+
+
+function  GIntegrator : TigIntegrator;
+//To avoid this instance being owned by Delphi IDE (that cause error when upgrade),
+//I made it read only by wrap it with this routine.
+begin
+  if UIntegrator = nil then
+    UIntegrator := TigIntegrator.Create(Application);
+  Result := UIntegrator;
+end;    
 { TigIntegrator }
 
 constructor TigIntegrator.Create(AOwner: TComponent);
@@ -218,6 +251,7 @@ begin
 
   inherited;
   FInstancesList := TList.Create;
+  FListeners := TList.Create;
 
 end;
 
@@ -433,6 +467,51 @@ begin
   
 end;
 
+procedure TigIntegrator.SetActivePaintBox(const Value: TigPaintBox);
+begin
+  if FActivePaintBox <> Value then
+  begin
+    FActivePaintBox := Value;
+    ActivePaintBoxSwitched;
+    if Assigned(Value) then
+      Value.FreeNotification(Self); //tell paintobx to report when she were destroying
+  end;
+end;
+
+procedure TigIntegrator.ActivePaintBoxSwitched;
+var i : Integer;
+begin
+  for i := 0 to FListeners.Count -1 do
+  begin
+    TigAgent( FListeners[i] ).DoActivePaintBoxSwitched;
+  end;
+
+end;
+
+procedure TigIntegrator.RegisterListener(AAgent: TigAgent);
+begin
+  if FListeners.IndexOf(AAgent) < 0 then
+  begin
+    FListeners.Add(AAgent);
+    AAgent.FreeNotification(Self); //tell the agent to report when she were destroying
+  end;
+end;
+
+procedure TigIntegrator.Notification(AComponent: TComponent;
+  Operation: TOperation);
+begin
+  inherited;
+  if Operation = opRemove then
+  begin
+    if (AComponent = ActivePaintBox) then
+    begin
+      ActivePaintBox := nil; //broadcast to agents
+    end;
+
+  end;
+
+end;
+
 { TigPaintBox }
 
 procedure TigPaintBox.AfterLayerCombined(ASender: TObject;
@@ -494,7 +573,29 @@ begin
   GIntegrator.DoMouseUp(Self, Button, Shift, X, Y, FLayerList.SelectedPanel);
 end;
 
-initialization
-  GIntegrator := TigIntegrator.Create(Application);
+procedure TigPaintBox.SetFocus;
+begin
+  inherited;
+  GIntegrator.ActivePaintBox := Self;
+end;
 
+{ TigAgent }
+
+constructor TigAgent.Create(AOwner: TComponent);
+begin
+  inherited;
+  GIntegrator.RegisterListener(Self);
+end;
+
+procedure TigAgent.DoActivePaintBoxSwitched;
+begin
+  if Assigned(FOnActivePaintBoxSwitched) then
+    FOnActivePaintBoxSwitched(Self);
+end;
+
+initialization
+  //UIntegrator := TigIntegrator.Create(Application);
+finalization
+  //if UIntegrator <> nil then
+    //FreeAndNil(UIntegrator); //explicite remove for package recompile
 end.

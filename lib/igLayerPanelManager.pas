@@ -118,7 +118,6 @@ type
     FScrollLocked   : Boolean;                 // lock execution of the scroll bars
     FVertScroll     : TRangeBar;
     FPanelTheme     : TigLayerPanelCustomTheme;
-    FPanelList      : TigLayerPanelList;
     FViewportOffset : TPoint;                  // offset of the viewport
     FWorkSize       : TPoint;                  // maximum scrollable area
     FLeftButtonDown : Boolean;                 // if mouse left button is pressed
@@ -149,6 +148,7 @@ type
     // callbacks
     procedure ScrollHandler(Sender: TObject);
   protected
+    FPanelList      : TigLayerPanelList;
     procedure PreparePanelSnapshotRendering(const AMouseX, AMouseY: Integer); virtual;
     procedure CheckLayout; virtual;
     procedure Scroll(Dy: Integer); virtual;

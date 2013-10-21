@@ -29,6 +29,7 @@ unit igLayers;
  *   Ma Xiaoguang and Ma Xiaoming < gmbros[at]hotmail[dot]com >
  *
  * Contributor(s):
+ *   x2nie  < x2nie[at]yahoo[dot]com >
  *
  * ***** END LICENSE BLOCK ***** *)
 
@@ -56,12 +57,18 @@ type
   TigLayerProcessStage = (lpsLayer, lpsMask);
 
   { Forward Declarations }
+  TigCustomLayerPanel = class;
   TigLayerPanelList = class;
   TigClassCounter = class;
+
+  { Event }
+  TigLayerChangeEvent = procedure(Sender: TObject; ALayer: TigCustomLayerPanel) of object;
 
   { TigCustomLayerPanel }
   
   TigCustomLayerPanel = class(TPersistent)
+  private
+    procedure DoParentLayerChanged;
   protected
     FOwner                : TigLayerPanelList;
     FLayerBitmap          : TBitmap32;
@@ -172,6 +179,7 @@ type
     FOnFlattenLayers      : TigMergeLayerEvent;
 
     FPanelTypeCounter     : TigClassCounter;
+    FOnLayerChanged: TigLayerChangeEvent;
 
     function GetPanelCount: Integer;
     function GetPanelMaxIndex: Integer;
@@ -185,6 +193,7 @@ type
     procedure DeleteVisibleLayerPanels;
     procedure DeselectAllPanels;
     procedure SetLayerPanelInitialName(ALayerPanel: TigCustomLayerPanel);
+    procedure DoLayerChanged(ALayer : TigCustomLayerPanel);
   public
     constructor Create;
     destructor Destroy; override;
@@ -213,6 +222,7 @@ type
     property SelectedIndex                : Integer               read GetSelectedPanelIndex;
     property LayerPanels[AIndex: Integer] : TigCustomLayerPanel   read GetLayerPanel;
     property SelectedPanel                : TigCustomLayerPanel   read FSelectedPanel;
+    property OnLayerChanged               : TigLayerChangeEvent   read FOnLayerChanged       write FOnLayerChanged; 
     property OnLayerCombined              : TigLayerCombinedEvent read FOnLayerCombined      write FOnLayerCombined;
     property OnSelectionChanged           : TNotifyEvent          read FOnSelectionChanged   write FOnSelectionChanged;
     property OnLayerOrderChanged          : TNotifyEvent          read FOnLayerOrderChanged  write FOnLayerOrderChanged;
@@ -527,6 +537,7 @@ begin
   InflateRect(LRect, 1, 1);
   FLayerThumb.FrameRectS(LRect, clBlack32);
 
+  DoParentLayerChanged();
   if Assigned(FOnThumbUpdate) then
   begin
     FOnThumbUpdate(Self);
@@ -607,6 +618,11 @@ begin
 
     Result := not FMaskEnabled;
   end;
+end;
+
+procedure TigCustomLayerPanel.DoParentLayerChanged;
+begin
+  FOwner.DoLayerChanged(Self);
 end;
 
 { TigNormalLayerPanel }
@@ -1409,6 +1425,12 @@ begin
       end;
     end;
   end;
+end;
+
+procedure TigLayerPanelList.DoLayerChanged(ALayer: TigCustomLayerPanel);
+begin
+  if Assigned(FOnLayerChanged) then
+    FOnLayerChanged(Self, ALayer);
 end;
 
 { TigClassRec }

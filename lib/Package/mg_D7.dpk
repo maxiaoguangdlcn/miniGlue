@@ -22,6 +22,7 @@ package mg_D7;
 {$WRITEABLECONST OFF}
 {$MINENUMSIZE 1}
 {$IMAGEBASE $400000}
+{$DESCRIPTION 'miniGlue'}
 {$IMPLICITBUILD ON}
 
 requires
@@ -31,6 +32,10 @@ requires
 
 contains
   igBase in '..\igBase.pas',
-  igReg in '..\igReg.pas';
+  igReg in '..\igReg.pas',
+  igLayerPanelManager in '..\igLayerPanelManager.pas',
+  igLayers in '..\igLayers.pas',
+  igLayersListBox in '..\igLayersListBox.pas',
+  igComboboxBlendModes in '..\igComboboxBlendModes.pas';
 
 end.

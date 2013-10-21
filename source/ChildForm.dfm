@@ -23,7 +23,7 @@ object frmChild: TfrmChild
     Left = 0
     Top = 0
     Width = 630
-    Height = 373
+    Height = 390
     Align = alClient
     Bitmap.ResamplerClassName = 'TNearestResampler'
     BitmapAlign = baCustom

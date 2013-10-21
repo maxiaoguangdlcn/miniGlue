@@ -8,11 +8,11 @@ procedure Register;
 
 implementation
 uses
-  igBase;
+  igBase, igLayersListBox, igComboboxBlendModes;
 
 procedure Register();
 begin
-  registerComponents('miniGlue',[TigPaintBox]);
+  registerComponents('miniGlue',[TigPaintBox, TigLayersListBox, TigComboBoxBlendMode]);
 end;
 
 end.
