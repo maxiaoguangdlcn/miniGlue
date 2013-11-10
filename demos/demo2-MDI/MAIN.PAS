@@ -94,6 +94,8 @@ type
     procedure FormCreate(Sender: TObject);
     procedure EnabledWhenMDIavailabled(Sender: TObject);
     procedure actLayer_DeleteExecute(Sender: TObject);
+    procedure lyrs1MouseUp(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
   private
     { Private declarations }
     procedure CreateMDIChild(const Name: string);
@@ -200,6 +202,16 @@ end;
 procedure TMainForm.actLayer_DeleteExecute(Sender: TObject);
 begin
 //
+end;
+
+procedure TMainForm.lyrs1MouseUp(Sender: TObject; Button: TMouseButton;
+  Shift: TShiftState; X, Y: Integer);
+begin
+  // TODO: we have to refresh the layers list box on each mouse up,
+  // if not, after we switched to an unselected layer with mouse click,
+  // the layers list box will not showing the changes up.
+  // Should we do the refreshing at here?
+  lyrs1.Invalidate;
 end;
 
 end.

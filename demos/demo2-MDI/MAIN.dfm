@@ -1,6 +1,6 @@
 object MainForm: TMainForm
-  Left = 297
-  Top = 222
+  Left = 187
+  Top = 127
   Width = 717
   Height = 405
   Caption = 'MDI Application'
@@ -20,7 +20,7 @@ object MainForm: TMainForm
   TextHeight = 13
   object StatusBar: TStatusBar
     Left = 0
-    Top = 340
+    Top = 321
     Width = 709
     Height = 19
     AutoHint = True
@@ -125,14 +125,14 @@ object MainForm: TMainForm
     Left = 392
     Top = 30
     Width = 317
-    Height = 310
+    Height = 291
     Align = alRight
     BevelOuter = bvNone
     BorderWidth = 3
     TabOrder = 2
     object tlbrLayers: TToolBar
       Left = 3
-      Top = 283
+      Top = 264
       Width = 311
       Height = 24
       Align = alBottom
@@ -179,7 +179,8 @@ object MainForm: TMainForm
       Left = 3
       Top = 47
       Width = 311
-      Height = 236
+      Height = 217
+      OnMouseUp = lyrs1MouseUp
       Align = alClient
     end
     object tlbrBlendModes: TToolBar
