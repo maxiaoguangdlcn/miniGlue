@@ -491,7 +491,12 @@ begin
 
     LRect.Left  := LRect.Right;
     LRect.Right := LRect.Left + LBmp.Width + FObjectSpan;
-    DrawProcessStageIcon(ABuffer, LRect, APanel.LayerProcessStage);
+
+    if APanel.IsSelected then
+    begin
+      // drawing stage icon only when the panel is currently selected
+      DrawProcessStageIcon(ABuffer, LRect, APanel.LayerProcessStage);
+    end;
     ABuffer.LineS(LRect.Right, LRect.Top, LRect.Right, LRect.Bottom, FSpanColor);
 
     // draw layer thumbnail
