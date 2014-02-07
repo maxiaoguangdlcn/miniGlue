@@ -1,4 +1,4 @@
-unit igJpg;
+unit igBmp;
 
 (* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1 or LGPL 2.1 with linking exception
@@ -30,10 +30,6 @@ unit igJpg;
 
 interface
 
-{$IFDEF FPC}
-  {$MODE Delphi}
-{$ENDIF}
-
 (* ***** BEGIN NOTICE BLOCK *****
  *
  * For using this unit, please always add it into the project,
@@ -41,84 +37,68 @@ interface
  * project will make the code in Initialization/Finalization part
  * of the unit be invoked.
  *
- * ***** END NOTIC BLOCK *****)
+ * And also notice that, the unit igGraphics.pas should be added
+ * to a project before this unit. Please check out the code at
+ * the end of this unit for details.
+ *
+ * ***** END NOTICE BLOCK *****)
 
 uses
 { Delphi }
-  SysUtils, Classes,
+  Classes,
 { Graphics32 }
   GR32,
-{ miniGlue lib}
+{ miniGlue lib }
   igGraphics;
 
 type
-  { TigJpgReader }
+  { TigBmpReader }
 
-  TigJpgReader = class(TigGraphicReader)
+  TigBmpReader = class(TigGraphicReader)
   public
     class function IsValidFormat(AStream: TStream): Boolean; override;
     function LoadFromStream(AStream: TStream): TBitmap32; override;
   end;
 
-
 implementation
 
 uses
 { Delphi }
-  {$IFNDEF FPC}JPEG,{$ENDIF}
   Graphics;
 
 const
-  C_JPG_MARKER_1 = $D8FF; // http://en.wikipedia.org/wiki/JPEG_file_format
-  C_JPG_MARKER_2 = $E0FF; // http://www.daevius.com/information-jpeg-file-format
+  C_BMP_MARKER = $4D42;     // http://en.wikipedia.org/wiki/Bitmap_file_format
 
-{ TigJpgReader }
+{ TigBmpReader }
 
-class function TigJpgReader.IsValidFormat(AStream: TStream): Boolean;
+class function TigBmpReader.IsValidFormat(AStream: TStream): Boolean;
 var
-  LMagic1 : Word;
-  LMagic2 : Word;
+  LMagic : Word;
 begin
   Result := False;
 
   if Assigned(AStream) then
   begin
-    AStream.Read(LMagic1, 2);
-    AStream.Read(LMagic2, 2);
+    AStream.Read(LMagic, 2);
 
-    Result := (LMagic1 = C_JPG_MARKER_1){ and (LMagic2 = C_JPG_MARKER_2)};
+    Result := (LMagic = C_BMP_MARKER);
   end;
 end;
 
-function TigJpgReader.LoadFromStream(AStream: TStream): TBitmap32;
-var
-  LJpgImage : TJPEGImage;
-  LWinBmp   : TBitmap;
+function TigBmpReader.LoadFromStream(AStream: TStream): TBitmap32;
 begin
   Result := nil;
 
   if Assigned(AStream) then
   begin
-    LJpgImage := TJPEGImage.Create;
-    LWinBmp   := TBitmap.Create;
-    try
-      LJpgImage.LoadFromStream(AStream);
-
-      LWinBmp.Width       := LJpgImage.Width;
-      LWinBmp.Height      := LJpgImage.Height;
-      LWinBmp.PixelFormat := pf24bit;
-      LWinBmp.Canvas.Draw(0, 0, LJpgImage);
-
-      Result := TBitmap32.Create;
-      Result.Assign(LWinBmp);
-    finally
-      LJpgImage.Free;
-      LWinBmp.Free;
-    end;
+    Result := TBitmap32.Create;
+    Result.LoadFromStream(AStream);
   end;
 end;
 
 initialization
-  igGraphics.RegisterGraphicsFileReader('jpg', TigJpgReader);
-  igGraphics.RegisterGraphicsFileReader('jpeg', TigJpgReader);
+  // Unit igGraphics.pas should be added to a project before this unit,
+  // for making the following function call available.
+  igGraphics.RegisterGraphicsFileReader('bmp', TigBmpReader, 'Bitmaps (*.bmp)');
+
 end.

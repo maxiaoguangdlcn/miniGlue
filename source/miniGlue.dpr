@@ -6,7 +6,6 @@ program miniGlue;
 
   //note for delphi, when error add uses: {$ifdef FPC}Interfaces,{$endif}
 uses
-  {$ifdef FPC}Interfaces,{$endif}
   Forms,
   MainForm in 'MainForm.pas' {frmMain},
   MainDataModule in 'MainDataModule.pas' {dmMain: TDataModule},
@@ -18,6 +17,7 @@ uses
   igMath in '..\lib\igMath.pas',
   igLayerPanelManager in '..\lib\igLayerPanelManager.pas',
   igPng in '..\lib\igPng.pas',
+  igBmp in '..\lib\igBmp.pas',
   igLayerIO in '..\lib\igLayerIO.pas',
   igGraphicsLayerIO in '..\lib\igGraphicsLayerIO.pas',
   igBase in '..\lib\igBase.pas',
