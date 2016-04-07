@@ -28,7 +28,7 @@ unit ChildForm;
  *
  * ***** END LICENSE BLOCK ***** *)
 
-// Update Date: 2015/04/18
+// Update Date: 2016/04/07
 
 interface
 
@@ -319,6 +319,20 @@ procedure TfrmChild.AfterSelectedLayerPanelChanged(ASender: TObject);
 begin
   if Assigned(frmLayers) then
   begin
+    FChannelManager.AlphaChannelList.HideAllChannels();
+
+    case FLayerList.SelectedLayer.LayerProcessStage of
+      lpsLayer:
+        begin
+          FChannelManager.SelectColorChannel(0, True);
+        end;
+
+      lpsMask:
+        begin
+          FChannelManager.SelectLayerMaskChannel();
+        end;
+    end;
+
     frmLayers.LayerPanelManager.Invalidate();
 
     frmLayers.cmbbxBlendModes.ItemIndex := Ord(FLayerList.SelectedLayer.LayerBlendMode);
